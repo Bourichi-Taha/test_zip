@@ -27,29 +27,31 @@ jobs:
         with:
           path: |
             ~/.yarn/cache
-            node_modules
+            weaver_no_node1/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
       - name: Install dependencies
         if: steps.yarn-cache.outputs.cache-hit != 'true'
+        working-directory: weaver_no_node1
         run: yarn install
 
       - name: Expo Prebuild
+        working-directory: weaver_no_node1
         run: npx expo prebuild --platform ios --no-install
 
       - name: Cache CocoaPods
         uses: actions/cache@v2
         with:
-          path: ios/Pods
+          path: weaver_no_node1/ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('Podfile.lock') }}
           restore-keys: |
             ${{ runner.os }}-pods-
 
       - name: Install CocoaPods 
         run: |
-          cd ios
+          cd weaver_no_node1/ios
           pod install
       - name: Cache Derived Data
         uses: actions/cache@v2
@@ -62,7 +64,7 @@ jobs:
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
         run: |
-          cd ios
+          cd weaver_no_node1/ios
           xcodebuild -workspace "WeaverTheme.xcworkspace" \
             -scheme WeaverTheme \
             -configuration Debug \
@@ -74,17 +76,17 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ios_app_artifact
-          path: ios/build/Build/Products/Debug-iphonesimulator/WeaverTheme.app
+          path: weaver_no_node1/ios/build/Build/Products/Debug-iphonesimulator/WeaverTheme.app
       - name: upload iOS App workspace
         uses: actions/upload-artifact@v3
         with:
           name: ios_app_workspace
-          path: ios/WeaverTheme.xcworkspace
+          path: weaver_no_node1/ios/WeaverTheme.xcworkspace
       - name: upload iOS App projectfile
         uses: actions/upload-artifact@v3
         with:
           name: ios_app_xcodeproj
-          path: ios/WeaverTheme.xcodeproj
+          path: weaver_no_node1/ios/WeaverTheme.xcodeproj
 
   build_and_push_docker:
     runs-on: ubuntu-latest
